@@ -215,5 +215,47 @@ namespace BoletoNetCore.Extensions
 
             return digitoFinal.ToString();
         }
+        
+        public static string CalcularDVBancoBTGPactual(this string nossoNumero)
+        {
+            var soma = 0;
+            var multiplicador = 2;
+
+            // Percorrer o número de trás para frente
+            for (int i = nossoNumero.Length - 1; i >= 0; i--)
+            {
+                // Multiplicar cada dígito pela sequência crescente de 2 a 9
+                int numero = int.Parse(nossoNumero[i].ToString());
+                soma += numero * multiplicador;
+
+                // Atualizar o multiplicador (2 a 9 e depois volta para 2)
+                multiplicador++;
+                if (multiplicador > 9)
+                {
+                    multiplicador = 2;
+                }
+            }
+
+            // Aplicar o Módulo 11
+            int resto = soma % 11;
+            int digitoVerificador;
+
+            if (resto == 0 || resto == 1)
+            {
+                digitoVerificador = 1;  // Regra para evitar dígito zero
+            }
+            else if (resto == 10)
+            {
+                digitoVerificador = 1;  // Também pode ser 1, dependendo da regra do banco
+            }
+            else
+            {
+                digitoVerificador = 11 - resto;
+            }
+
+            return digitoVerificador.ToString();
+        }
     }
+    
+   
 }
