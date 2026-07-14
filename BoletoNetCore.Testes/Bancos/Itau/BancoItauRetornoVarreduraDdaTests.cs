@@ -41,6 +41,11 @@ namespace BoletoNetCore.Testes
                 Set(r, 107, "17062026");        // vencimento (DDMMAAAA)
                 Set(r, 115, "000000001806455"); // valor (15) => 18.064,55
                 Set(r, 147, "987654321098765"); // número do documento (15) - posições 148-162
+                Set(r, 61, "2");                 // tipo de inscrição do cedente ('2' = CNPJ)
+                Set(r, 62, "043187431000111");   // nº inscrição do cedente 9(15) => CNPJ 43187431000111
+                Set(r, 77, "BRASLIGHT INDUSTRIA COMERCIO E"); // nome do cedente X(30)
+                Set(r, 181, "01062026");        // data de emissão do título (DDMMAAAA) - 182-189
+                Set(r, 231, "20082026");        // data limite para pagamento (DDMMAAAA) - 232-239
             });
 
             var banco = (IBancoCNAB240)Banco.Instancia(341);
@@ -55,6 +60,10 @@ namespace BoletoNetCore.Testes
             Assert.AreEqual("01", boleto.CodigoMovimentoRetorno, "Código de movimento");
             Assert.AreEqual("Entrada de Títulos", boleto.DescricaoMovimentoRetorno, "Descrição do movimento (varredura DDA)");
             Assert.IsNotEmpty(boleto.CodigoBarra.LinhaDigitavel, "Linha digitável derivada do código de barras");
+            Assert.AreEqual("43187431000111", boleto.Cedente.CPFCNPJ, "CNPJ do cedente (fornecedor)");
+            Assert.AreEqual("BRASLIGHT INDUSTRIA COMERCIO E", boleto.Cedente.Nome, "Nome do cedente");
+            Assert.AreEqual(new DateTime(2026, 6, 1), boleto.DataEmissao, "Data de emissão do título");
+            Assert.AreEqual(new DateTime(2026, 8, 20), boleto.DataLimitePagamento, "Data limite para pagamento");
         }
     }
 }
