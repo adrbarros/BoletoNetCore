@@ -187,6 +187,39 @@ namespace BoletoNetCore
                 // Valor do título
                 boleto.ValorTitulo = Convert.ToDecimal(registro.Substring(115, 15)) / 100;
 
+                // Cedente (fornecedor/beneficiário) do título - segmento G da varredura DDA.
+
+                // Tipo de inscrição do cedente (posição 62): '1' = CPF, '2' = CNPJ.
+                var tipoInscricaoCedente = registro.Substring(61, 1);
+
+                // Número da inscrição do cedente 9(15) (posições 63-77), preenchido com zeros à esquerda.
+                var inscricaoCedente = registro.Substring(62, 15).Trim();
+
+                // Normaliza o número para o tamanho do documento: 11 (CPF) ou 14 (CNPJ).
+                var tamanhoDocumentoCedente = tipoInscricaoCedente == "1" ? 11 : 14;
+                if (inscricaoCedente.Length > tamanhoDocumentoCedente)
+                    inscricaoCedente = inscricaoCedente.Substring(inscricaoCedente.Length - tamanhoDocumentoCedente);
+
+                // Só atribui quando for um documento válido: o setter de CPFCNPJ exige 11/14 dígitos
+                // (e lança exceção caso contrário). Ignora campo em branco ou preenchido só com zeros.
+                if ((inscricaoCedente.Length == 11 || inscricaoCedente.Length == 14)
+                    && long.TryParse(inscricaoCedente, out _)
+                    && inscricaoCedente.Trim('0').Length > 0)
+                    boleto.Cedente.CPFCNPJ = inscricaoCedente;
+
+                // Nome do cedente X(30) (posições 78-107).
+                boleto.Cedente.Nome = registro.Substring(77, 30).Trim();
+
+                // Data de emissão do título (DDMMAAAA) - posições 182-189.
+                var dataEmissao = Utils.ToInt32(registro.Substring(181, 8));
+                if (dataEmissao > 0)
+                    boleto.DataEmissao = Utils.ToDateTime(dataEmissao.ToString("##-##-####"));
+
+                // Data limite para pagamento do título (DDMMAAAA) - posições 232-239.
+                var dataLimitePagamento = Utils.ToInt32(registro.Substring(231, 8));
+                if (dataLimitePagamento > 0)
+                    boleto.DataLimitePagamento = Utils.ToDateTime(dataLimitePagamento.ToString("##-##-####"));
+
                 // Registro Retorno
                 boleto.RegistroArquivoRetorno = boleto.RegistroArquivoRetorno + registro + Environment.NewLine;
             }
